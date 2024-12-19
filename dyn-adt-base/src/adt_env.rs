@@ -1,8 +1,10 @@
 use std::{any::TypeId, collections::HashMap, sync::LazyLock};
 
+use entoli::prelude::map;
+
 use crate::{
     adt_def::{AdtDef, AdtRef, ConstructorDef, FieldDef},
-    adt_id::{AdtId},
+    adt_id::AdtId,
     raw_adt_def::{RawAdtDef, RawConstructorDef},
 };
 // TypeId -> AdtId
@@ -11,7 +13,7 @@ static ADT_ID_FROM_TYPE_ID: LazyLock<HashMap<TypeId, AdtId>> =
     LazyLock::new(_mk_adt_id_from_type_id);
 
 fn _mk_adt_id_from_type_id() -> HashMap<TypeId, AdtId> {
-    let mut map = HashMap::new();
+    let mut hash_map = HashMap::new();
 
     for adt_reg_wrapper in inventory::iter::<AdtRegEntryWrapper> {
         let adt_reg = (adt_reg_wrapper.0)();
@@ -19,15 +21,15 @@ fn _mk_adt_id_from_type_id() -> HashMap<TypeId, AdtId> {
         let type_id = adt_reg.type_id;
         let adt_id = AdtId::from_raw_adt_def(&adt_reg.raw_adt_def);
 
-        if map.insert(type_id, adt_id).is_some() {
+        if hash_map.insert(type_id, adt_id).is_some() {
             panic!(
                 "Duplicate TypeId in ADT registration. \n\n{:?} \n\n{:?} \n\n{:?}",
-                type_id, adt_id, map
+                type_id, adt_id, hash_map
             );
         }
     }
 
-    map
+    hash_map
 }
 
 pub fn adt_id_from_type_id(type_id: TypeId) -> Option<&'static AdtId> {
@@ -100,7 +102,7 @@ fn _mk_adt_def_from_adt_id() -> HashMap<AdtId, AdtDef> {
         adt_id_from_raw_adt_def_map.get(raw_adt_def)
     };
 
-    let mut map = HashMap::new();
+    let mut hash_map = HashMap::new();
 
     for adt_reg_wrapper in inventory::iter::<AdtRegEntryWrapper> {
         let adt_reg = (adt_reg_wrapper.0)();
@@ -111,41 +113,41 @@ fn _mk_adt_def_from_adt_id() -> HashMap<AdtId, AdtDef> {
         let adt_def = match raw_adt_def {
             RawAdtDef::Primitive(primitive_type) => AdtDef::Primitive(primitive_type),
             RawAdtDef::TupleStruct(raw_adt_defs) => {
-                let adt_refs = raw_adt_defs
-                    .iter()
-                    .map(|raw_adt_def| {
+                let adt_refs = map(
+                    |raw_adt_def| {
                         if let Some(adt_id) = adt_id_from_raw_adt_def(raw_adt_def) {
                             AdtRef::Composite(adt_id.clone())
                         } else {
                             panic!(
                                 "Failed to find AdtId for RawAdtDef.\n\n{:?}\n\n{:?}\n\n{:?}",
-                                raw_adt_def, adt_id_from_raw_adt_def_map, map
+                                raw_adt_def, adt_id_from_raw_adt_def_map, hash_map
                             );
                         }
-                    })
-                    .collect();
+                    },
+                    &raw_adt_defs,
+                );
 
-                AdtDef::TupleStruct(adt_refs)
+                AdtDef::TupleStruct(adt_refs.collect())
             }
             RawAdtDef::RecordStruct(raw_field_defs) => {
-                let field_defs = raw_field_defs
-                    .iter()
-                    .map(|raw_field_def| {
+                let field_defs = map(
+                    |raw_field_def| {
                         let name = raw_field_def.name.to_string();
                         let ty = if let Some(adt_id) = adt_id_from_raw_adt_def(&raw_field_def.ty) {
                             AdtRef::Composite(adt_id.clone())
                         } else {
                             panic!(
                                 "Failed to find AdtId for RawAdtDef.\n\n{:?}\n\n{:?}\n\n{:?}",
-                                raw_field_def.ty, adt_id_from_raw_adt_def_map, map
+                                raw_field_def.ty, adt_id_from_raw_adt_def_map, hash_map
                             );
                         };
 
                         FieldDef { name, ty }
-                    })
-                    .collect();
+                    },
+                    &raw_field_defs,
+                );
 
-                AdtDef::RecordStruct(field_defs)
+                AdtDef::RecordStruct(field_defs.collect())
             }
 
             RawAdtDef::Enum(raw_constructor_defs) => {
@@ -154,27 +156,26 @@ fn _mk_adt_def_from_adt_id() -> HashMap<AdtId, AdtDef> {
                     .map(|raw_constructor_def| {
                         match raw_constructor_def {
                             RawConstructorDef::TupleLike(raw_adt_defs) => {
-                                let adt_refs = raw_adt_defs
-                                    .iter()
-                                    .map(|raw_adt_def| {
+                                let adt_refs = map(
+                                    |raw_adt_def| {
                                         if let Some(adt_id) = adt_id_from_raw_adt_def(raw_adt_def) {
                                             AdtRef::Composite(adt_id.clone())
                                         } else {
                                             panic!(
                                                 "Failed to find AdtId for RawAdtDef.\n\n{:?}\n\n{:?}\n\n{:?}",
-                                                raw_adt_def, adt_id_from_raw_adt_def_map, map
+                                                raw_adt_def, adt_id_from_raw_adt_def_map, hash_map
                                             );
                                         }
-                                    })
-                                    .collect();
+                                    },
+                                    raw_adt_defs,
+                                );
 
-                                ConstructorDef::TupleLike(adt_refs)
+                                ConstructorDef::TupleLike(adt_refs.collect())
                             }
 
                             RawConstructorDef::RecordLike(raw_field_defs) => {
-                                let field_defs = raw_field_defs
-                                    .iter()
-                                    .map(|raw_field_def| {
+                                let field_defs = map(
+                                    |raw_field_def| {
                                         let name = raw_field_def.name.to_string();
                                         let ty = if let Some(adt_id) =
                                             adt_id_from_raw_adt_def(&raw_field_def.ty)
@@ -183,15 +184,16 @@ fn _mk_adt_def_from_adt_id() -> HashMap<AdtId, AdtDef> {
                                         } else {
                                             panic!(
                                                 "Failed to find AdtId for RawAdtDef.\n\n{:?}\n\n{:?}\n\n{:?}",
-                                                raw_field_def.ty, adt_id_from_raw_adt_def_map, map
+                                                raw_field_def.ty, adt_id_from_raw_adt_def_map, hash_map
                                             );
                                         };
 
                                         FieldDef { name, ty }
-                                    })
-                                    .collect();
+                                    },
+                                    raw_field_defs,
+                                );
 
-                                ConstructorDef::RecordLike(field_defs)
+                                ConstructorDef::RecordLike(field_defs.collect())
                             }
 
                         }
@@ -202,12 +204,12 @@ fn _mk_adt_def_from_adt_id() -> HashMap<AdtId, AdtDef> {
             }
         };
 
-        if map.insert(adt_id, adt_def).is_some() {
+        if hash_map.insert(adt_id, adt_def).is_some() {
             panic!("Duplicate AdtId in ADT registration. \n\n{:?}", adt_id);
         }
     }
 
-    map
+    hash_map
 }
 
 pub fn adt_def_from_adt_id(adt_id: AdtId) -> Option<&'static AdtDef> {
