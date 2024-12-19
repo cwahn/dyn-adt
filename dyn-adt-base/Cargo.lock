@@ -3,23 +3,11 @@
 version = 4
 
 [[package]]
-name = "dyn-adt"
-version = "0.1.0"
-dependencies = [
- "dyn-adt-base",
- "dyn-adt-derive",
-]
-
-[[package]]
 name = "dyn-adt-base"
 version = "0.1.0"
 dependencies = [
  "serde",
 ]
-
-[[package]]
-name = "dyn-adt-derive"
-version = "0.1.0"
 
 [[package]]
 name = "proc-macro2"
