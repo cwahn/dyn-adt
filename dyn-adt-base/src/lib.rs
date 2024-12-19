@@ -14,7 +14,7 @@
 // }
 
 
-
+pub mod bijection;
 pub mod primitive_type;
 pub mod adt_trait;
 pub mod raw_adt_def;
