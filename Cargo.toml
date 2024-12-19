@@ -1,8 +1,15 @@
-[package]
-name = "dyn-adt"
-version = "0.1.0"
-edition = "2021"
+# [package]
+# name = "dyn-adt"
+# version = "0.1.0"
+# edition = "2021"
 
-[dependencies]
-dyn-adt-base = {path = "./dyn-adt-base"}
-dyn-adt-derive = {path = "./dyn-adt-derive"}
+# [dependencies]
+# dyn-adt-base = {path = "./dyn-adt-base"}
+# dyn-adt-derive = {path = "./dyn-adt-derive"}
+
+[workspace]
+members = [
+    "dyn-adt-base",
+    "dyn-adt-derive",
+    "dyn-adt",
+]
