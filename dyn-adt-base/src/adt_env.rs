@@ -2,9 +2,8 @@ use std::{any::TypeId, collections::HashMap, sync::LazyLock};
 
 use crate::{
     adt_def::{AdtDef, AdtRef, ConstructorDef, FieldDef},
-    adt_id::{self, AdtId},
-    bijection::Bijection,
-    raw_adt_def::{self, RawAdtDef, RawConstructorDef},
+    adt_id::{AdtId},
+    raw_adt_def::{RawAdtDef, RawConstructorDef},
 };
 // TypeId -> AdtId
 
