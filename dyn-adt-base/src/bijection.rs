@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+#[derive(Debug, PartialEq)]
 pub struct Bijection<A, B>
 where
     A: Eq + Clone + std::hash::Hash,
