@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
-use crate::{adt_trait::AdtTrait, raw_adt_def::RawAdtDef};
+use crate::raw_adt_def::RawAdtDef;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct AdtId(u64);

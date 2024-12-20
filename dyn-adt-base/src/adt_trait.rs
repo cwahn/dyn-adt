@@ -1,4 +1,3 @@
-use serde::Serialize;
 
 use crate::raw_adt_def::RawAdtDef;
 

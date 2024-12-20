@@ -1,4 +1,3 @@
-use serde::{Deserialize, Serialize};
 
 use crate::primitive_type::PrimitiveType;
 
